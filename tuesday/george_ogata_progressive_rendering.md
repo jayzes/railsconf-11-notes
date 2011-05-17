@@ -1,0 +1,75 @@
+# Progressive Rendering and Full Page Caching
+- Patch.com
+- Github.com/oggy
+- Streaming and progressive rendering are coming with Rails 3.1
+- Currently server renders everything into a buffer before shoving the whole thing out to the client
+- Want to be able to serve the page as it's built, so the user doesn't have to wait as long
+  - Browser can start fetching external resources as well
+- Implemented Template Streaming gem/plugin for Rails 2.3
+  - Gives views a flush() helper to force a buffer flush
+  - Gives controllers a stream() method to enable streaming for actions
+  - It rewrites things pretty intensively - wreaks havoc with NewRelic agent
+- What do you need to know to add this to your app?
+  - Rack stack - middlewares fronted by web server
+  - Need to change up the way the body iterator works in the web server
+  - Create a StreamingBody proxy class to hotwire the iterator
+    - Doesn't work with thin or webrick
+    - Had to patch thin with event_machine_flush gem
+    - Also need to modify the headers - Transfer-Encoding chunked and no Content-Length
+      - Rack-Chunked will do this for you
+  - HTTP 1.0 intermediaries may blow this up - chunked encoding is a 1.1 feature
+  - Note that you can't modify the session or cookies in the view now, since the headers have already been sent
+  - You also can't rely on Rack ETags since they MD5 the body - set them yourself or use Last-Modified
+    - Although ETags are considered a stronger indication of cacheability by many servers
+- Reverse Proxy Caching (Rack::Cache or Varnish or Squid or Akamai)
+  - Must set cache-control: public header (Rails defaults to private)
+  - Use max-age to prevent constant re-validation (304s)
+  - Does this obviate the need for streaming?
+    - Not quite - there are obstacles
+    - Personalization
+      - Use javascript and cookies to load personal info after the page load
+      - In some cases, you don't want to use JS hiding/showing for security reasons
+      - Use edge-side includes (ESI) for those to dynamically build up
+    - Dynamic content
+      - This is where streaming is awesome
+      - Give it a try with a new app
+- Other Considerations
+  - Around filters may do strange things
+    - Image sprites
+      - Use placeholders at render time
+      - Makes it difficult to sprite on the fly with chunks
+  - What happens when an error occurs?
+    - Normally everything blows up
+    - But we can also decouple errors from rest of the render so you get a partial view of the page
+    - Hide the error in prod, put it in its own dev indev.
+  - What about content_for?
+    - In Ruby 1.8, look at I18n for parameterisation
+    - In Ruby 1.9, Rails uses provide/Fibers to jump around in the render and hide magic
+  - Check out "Even Faster Web Sites"
+  - Client thresholds
+    - IE 255B
+    - Safaru 1k
+    - Chrome 2l
+    - Need that much content to actually register a response
+  - JS loading
+    - Use a deferred loading function
+    - Guard clause for executing inline JS
+  - CSS loading
+    - Inline styles need a scoped param (HTML5) and are non-compliant
+    - Still needs to be at the top of the body
+    
+  - Ideas for the future
+    - Autoflushing (before/after partials, every 50ms) - tricky with Rails3 buffering in views
+    - Non-HTML streaming (JSON)
+    - Asynchrony - use threads and a fragment queue
+    
+  - Summary
+    - Streaming is here, use it
+    - Set your headers in the controller
+    - USe a reverse-proxy, stream what you want't cache
+    - USe middleware to alter your body
+    - Use I18n or provide for metadata
+    - External JS going in the head (asynchronously!)
+    - Avoid inline styles or pick your evil
+    - Isolate rendering errors
+    - 3.1 is just the beginning

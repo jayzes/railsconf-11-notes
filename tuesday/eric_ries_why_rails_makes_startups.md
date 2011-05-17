@@ -71,5 +71,6 @@ What is a startup?
 
 - If experiments reach diminishing returns, it's time to pivot
   
-
+## Q&A
 - If we did chemistry like we do entrepreneurship, most labs would explode
+- An entrepreneur is a person who does whatever it takes to be successful

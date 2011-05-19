@@ -1,5 +1,5 @@
-Etsy - Optimize for Dev Happiness
-- Deplyo code 25x per day
+# Etsy - Optimize for Dev Happiness
+- Deploy code 25x per day
 - Across a team of 70 engineers
 - 400,000+ active sellers
 - 9 million active members

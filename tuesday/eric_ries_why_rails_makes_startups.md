@@ -62,12 +62,12 @@ What is a startup?
 
 ### Innovation Accounting
 3 learning milestones
-1.  Establish the Baseline
+1. Establish the Baseline
   - Build the minimum viable product
   - Measure how customers behave right now
-2.  Tune the Engine
+2. Tune the Engine
   - experiment to try to improve metrics from baseline to ideal
-3.  Pivot or Persevere
+3. Pivot or Persevere
 
 - If experiments reach diminishing returns, it's time to pivot
   
